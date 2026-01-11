@@ -22,8 +22,36 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-const SERVER_DIR = path.join(__dirname, '..', 'stoneblock4');
-const JAR_NAME = 'run.sh';
+const ServerManager = require('./serverManager');
+const serverManager = new ServerManager(path.join(__dirname, 'config.json'));
+
+let activeServer = serverManager.getActiveServer();
+if (!activeServer) {
+    // Fallback if config is empty or invalid
+    console.error("No active server found in config!");
+    process.exit(1);
+}
+
+let SERVER_DIR = path.resolve(__dirname, activeServer.path);
+let JAR_NAME = activeServer.jar;
+
+// Ensure server directory exists (might be just ../servers/stoneblock4 or similar)
+if (!fs.existsSync(SERVER_DIR)) {
+    fs.mkdirSync(SERVER_DIR, { recursive: true });
+}
+
+// Function to reload MC handler when switching servers
+const reloadMinecraftHandler = () => {
+    activeServer = serverManager.getActiveServer();
+    SERVER_DIR = path.resolve(__dirname, activeServer.path);
+    JAR_NAME = activeServer.jar;
+
+    // We'll re-instantiate, but we need to handle the old listeners?
+    // Actually, simple way: we just create a new one.
+    // Ideally we should CLEANUP listeners from old 'mc' if we reuse variable
+    // But index.js attaches listeners to 'mc' right after creation.
+    // We should enable wrapping this logic.
+};
 
 if (!fs.existsSync(SERVER_DIR)) {
     fs.mkdirSync(SERVER_DIR, { recursive: true });
