@@ -7,12 +7,35 @@ const { spawn } = require('child_process');
 // For Azure VM (Linux), 'unzip' command is best.
 const unzipFile = (zipPath, destPath) => {
     return new Promise((resolve, reject) => {
+        console.log(`Attempting to unzip: ${zipPath} to ${destPath}`);
         const unzip = spawn('unzip', ['-o', zipPath, '-d', destPath]);
-        unzip.on('close', (code) => {
-            if (code === 0) resolve();
-            else reject(new Error(`Unzip process exited with code ${code}`));
+
+        let stdout = '';
+        let stderr = '';
+
+        unzip.stdout.on('data', (data) => {
+            stdout += data.toString();
+            console.log('Unzip stdout:', data.toString());
         });
-        unzip.on('error', reject);
+
+        unzip.stderr.on('data', (data) => {
+            stderr += data.toString();
+            console.error('Unzip stderr:', data.toString());
+        });
+
+        unzip.on('close', (code) => {
+            console.log(`Unzip process exited with code ${code}`);
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(new Error(`Unzip failed with code ${code}. Stderr: ${stderr}`));
+            }
+        });
+
+        unzip.on('error', (err) => {
+            console.error('Unzip spawn error:', err);
+            reject(err);
+        });
     });
 };
 
