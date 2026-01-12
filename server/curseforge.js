@@ -1,6 +1,6 @@
 const https = require('https');
 
-const API_KEY = '$2a$10$bL4bIL5pMORNfc.VtNtROe.xGKofA/1qCofGy.t.M.V.x/7sg.y.q'; // Public API key for testing, user should ideally provide their own
+const API_KEY = '$2a$10$hc1fVCzW/xgBBFFxggGjAueD0r1p1.DLCAQ1oOLIIxealh.OINkeS'; // Public API key for testing, user should ideally provide their own
 const BASE_URL = 'https://api.curseforge.com/v1';
 
 const getHeaders = (apiKey) => ({
@@ -14,10 +14,14 @@ const fetchJson = (url, apiKey) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
+                console.log('CurseForge API Response Status:', res.statusCode);
+                console.log('CurseForge API Response:', data.substring(0, 200)); // Log first 200 chars
+
                 try {
                     resolve(JSON.parse(data));
                 } catch (e) {
-                    reject(e);
+                    console.error('Failed to parse CurseForge response:', data);
+                    reject(new Error(`API returned non-JSON response: ${data.substring(0, 100)}`));
                 }
             });
         });

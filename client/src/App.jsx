@@ -1,3 +1,10 @@
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+import { Terminal, HardDrive, Play, Square, Settings, Menu, Users } from 'lucide-react';
+import Dashboard from './components/Dashboard';
+import Console from './components/Console';
+import ModManager from './components/ModManager';
+import Players from './components/Players';
 import ServerSelector from './components/ServerSelector';
 
 const socket = io();
